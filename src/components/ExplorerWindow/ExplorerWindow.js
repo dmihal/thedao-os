@@ -86,7 +86,7 @@ class Explorer extends Component {
               <ExplorerIcon
                 key={entry.title}
                 title={entry.title}
-                icon={icons[entry.src.icon]}
+                icon={icons[entry.icon].src}
                 className={entry.icon}
                 onDoubleClick={!this.state.loading ? () => this.handleClick(entry) : undefined}
               />
