@@ -50,6 +50,7 @@ body {
   height: 100%;
   width: 100%;
   transform: scale(1);
+  overflow: hidden;
 }
 
 .react-draggable > .Window {
