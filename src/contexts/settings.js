@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import bgImg from "../data/images/pbbg.jpg";
+import bgImg from "../data/images/background-compressed.jpg";
 import { SettingsContext } from ".";
 
 const toggle = (dis, key) => () => {
@@ -18,9 +18,7 @@ class SettingsProvider extends Component {
     crt: false,
     fullScreen: true,
     isMobile: false,
-    bgImg:
-      (isClient && window.localStorage.getItem("bgImg")) ||
-      (isClient && !window.localStorage.getItem("loggedIn") && bgImg),
+    bgImg: null,
     bgColor: (isClient && window.localStorage.getItem("bgColor")) || "#fff",
     bgStyle: (isClient && window.localStorage.getItem("bgStyle")) || "stretch"
   };
@@ -60,6 +58,14 @@ class SettingsProvider extends Component {
       );
     }
   };
+
+  componentDidMount() {
+    this.setState({
+      bgImg: window.localStorage.getItem("bgImg") || !window.localStorage.getItem("loggedIn") && bgImg.src,
+      bgColor: window.localStorage.getItem("bgColor") || "#fff",
+      bgStyle: window.localStorage.getItem("bgStyle") || "stretch",
+    });
+  }
 
   render() {
     const {
