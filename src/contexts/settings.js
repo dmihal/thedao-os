@@ -15,8 +15,8 @@ const isClient = typeof window !== 'undefined'
 class SettingsProvider extends Component {
   state = {
     scale: 1,
-    crt: true,
-    fullScreen: false,
+    crt: false,
+    fullScreen: true,
     isMobile: false,
     bgImg:
       (isClient && window.localStorage.getItem("bgImg")) ||
