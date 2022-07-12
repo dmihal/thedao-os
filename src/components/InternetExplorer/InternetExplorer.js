@@ -54,54 +54,54 @@ class InternetExplorer extends Component {
         minWidth={300}
         explorerOptions={[
           {
-            icon: icons.back,
+            icon: icons.back.src,
             title: "Back",
             onClick: noop
           },
           {
-            icon: icons.forward,
+            icon: icons.forward.src,
             title: "Forward",
             onClick: noop
           },
           {
-            icon: icons.ieStop,
+            icon: icons.ieStop.src,
             title: "Stop",
             onClick: noop
           },
           {
-            icon: icons.ieRefresh,
+            icon: icons.ieRefresh.src,
             title: "Refresh",
             onClick: noop
           },
           {
-            icon: icons.ieHome,
+            icon: icons.ieHome.src,
             title: "Home",
             onClick: noop
           },
           [
             {
-              icon: icons.ieSearch,
+              icon: icons.ieSearch.src,
               title: "Search",
               onClick: noop
             },
             {
-              icon: icons.ieFavorites,
+              icon: icons.ieFavorites.src,
               title: "Favorites",
               onClick: noop
             },
             {
-              icon: icons.ieHistory,
+              icon: icons.ieHistory.src,
               title: "History",
               onClick: noop
             }
           ],
           {
-            icon: icons.ieMail,
+            icon: icons.ieMail.src,
             title: "Mail",
             onClick: noop
           },
           {
-            icon: icons.iePrint,
+            icon: icons.iePrint.src,
             title: "Print",
             onClick: noop
           }
