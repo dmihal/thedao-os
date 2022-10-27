@@ -1,10 +1,10 @@
-import React, { Component } from "react";
+import React, { Component, createContext } from "react";
 import nanoid from "nanoid";
 import * as icons from "../icons";
 import * as Applications from "../components/Applications";
 import startMenuData from "../data/start";
 import desktopData from "../data/desktop";
-import { ProgramContext } from ".";
+import { ProgramContext, ProgramState } from ".";
 
 const transformLinks = option => ({
   ...option,
@@ -117,7 +117,7 @@ const desktopWithIds = (desktopData = []) =>
     };
   });
 
-const mapActions = (open, doubleClick) => entry => {
+const mapActions = (open, doubleClick?: boolean) => entry => {
   if (Array.isArray(entry)) {
     return initialize(open, entry);
   }
@@ -143,7 +143,7 @@ const mapActions = (open, doubleClick) => entry => {
   };
 };
 
-export const initialize = (open, data, doubleClick) => {
+export const initialize = (open, data, doubleClick?: boolean) => {
   const mapFunc = mapActions(open, doubleClick);
   return Array.isArray(data) ? data.map(mapFunc) : undefined;
 };
@@ -158,12 +158,19 @@ const buildDesktop = (desktopData, open) => [
   })
 ];
 
-class ProgramProvider extends Component {
+interface ProgramProviderProps {
+  desktopData: any,
+  startMenuData: any,
+  children: React.ReactNode,
+}
+
+class ProgramProvider extends Component<ProgramProviderProps, ProgramState> {
   static defaultProps = {
     startMenuData,
     desktopData
   };
   state = {
+    activeId: null,
     programs: Object.keys(Applications).reduce(
       (acc, p) => ({
         ...acc,
@@ -182,7 +189,12 @@ class ProgramProvider extends Component {
               title: "Control Panel",
               onClick: () => this.toggleSettings(),
               icon: icons.controlPanel16.src
-            }
+            },
+            {
+              title: 'Wallet Manager',
+              onClick: () => this.toggleWalletManager(true),
+              icon: icons.metamask16.src,
+            },
           ],
           () => this.toggleShutDownMenu()
         )
@@ -200,7 +212,9 @@ class ProgramProvider extends Component {
     openOrder: [],
     zIndexes: [],
     settingsDisplay: false,
-    shutDownMenu: false
+    shutDownMenu: false,
+    taskManager: false,
+    walletManager: false,
   };
 
   componentDidMount() {
@@ -216,10 +230,15 @@ class ProgramProvider extends Component {
     this.setState(state => ({ shutDownMenu: !state.shutDownMenu }));
   toggleTaskManager = () =>
     this.setState(state => ({ taskManager: !state.taskManager }));
-  toggleSettings = val =>
+  toggleSettings = (val?: boolean) =>
     this.setState(state => ({
       settingsDisplay: val || !state.settingsDisplay
     }));
+  toggleWalletManager = (val?: boolean) =>
+    this.setState(state => ({
+      walletManager: val || !state.walletManager
+    }));
+
 
   shutDown = () => {
     const desktop = document.querySelector(".desktop");
@@ -256,7 +275,7 @@ class ProgramProvider extends Component {
     });
   };
 
-  open = (program, options = {}) => {
+  open = (program, options: any = {}) => {
     // @todo use id instead to avoid weird open handling
     // @todo rename launch to handle multi-window programs
     if (!Applications[program.component]) {
@@ -340,13 +359,14 @@ class ProgramProvider extends Component {
       activeId: null
     }));
 
-  save = (prog, data, title, location = "desktop") => {
+  save = (prog, data, title, location: 'desktop' | 'startMenu' = "desktop") => {
     const mapFunc = mapActions(this.open, location === "desktop");
     const existing = this.state[location].find(
       p => p.title === title || p.id === prog.id
     );
     if (existing) {
       return this.setState(
+        // @ts-ignore
         state => {
           const filtered = state[location].filter(
             p => p.title !== existing.title
@@ -381,6 +401,7 @@ class ProgramProvider extends Component {
         readOnly: false
       };
       return this.setState(
+        // @ts-ignore
         state => ({
           [location]: [
             ...state[location],
@@ -411,6 +432,7 @@ class ProgramProvider extends Component {
           toggleTaskManager: this.toggleTaskManager,
           toggleSettings: this.toggleSettings,
           toggleShutDownMenu: this.toggleShutDownMenu,
+          toggleWalletManager: this.toggleWalletManager,
           shutDown: this.shutDown,
           onMinimize: this.minimize,
           save: this.save

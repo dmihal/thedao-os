@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { TaskBar as TaskBarComponent } from "packard-belle";
 import { ProgramContext } from "../../contexts";
+import { metamask16 } from "../../icons";
 
 const TaskBar = () => {
   const context = useContext(ProgramContext);
@@ -22,6 +23,13 @@ const TaskBar = () => {
           onClick: () => onClick(windowId)
         };
       })}
+      notifiers={[
+        {
+          icon: metamask16.src,
+          onClick: () => context.toggleWalletManager(),
+          alt: 'Wallet',
+        },
+      ]}
     />
   );
 };

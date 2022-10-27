@@ -1,6 +1,8 @@
 import { createContext } from "react";
 
-interface ProgramCtx {
+export const SettingsContext = createContext<any>({});
+
+export interface ProgramState {
   programs: { [key: string]: any },
   startMenu: any,
   desktop: any,
@@ -11,18 +13,21 @@ interface ProgramCtx {
   settingsDisplay: boolean,
   shutDownMenu: boolean,
   activeId: string | null,
-
-  onOpen: () => void,
-  onClose: () => void,
-  moveToTop: (window: string) => void,
-  toggleTaskManager: () => void,
-  toggleSettings: () => void,
-  toggleShutDownMenu: () => void,
-  shutDown: () => void,
-  onMinimize: (window: string) => void,
-  save: () => void
-
+  taskManager: boolean,
+  walletManager: boolean,
 }
 
-export const ProgramContext = createContext<ProgramCtx>({} as any);
-export const SettingsContext = createContext<any>({});
+export interface ProgramMethods {
+  onOpen: (program: any, options?: any) => void,
+  onClose: (program: any, exit: any) => void,
+  moveToTop: (window: string) => void,
+  toggleTaskManager: () => void,
+  toggleSettings: (show: boolean) => void,
+  toggleShutDownMenu: () => void,
+  toggleWalletManager: () => void,
+  shutDown: () => void,
+  onMinimize: (window: string) => void,
+  save: (prog: any, data: any, title: string, location?: any) => void
+}
+
+export const ProgramContext = createContext<ProgramState & ProgramMethods>({} as any);

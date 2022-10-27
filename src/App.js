@@ -12,6 +12,7 @@ import Settings from "./components/Settings";
 import CRTOverlay from "./components/tools/CRT";
 import ShutDown from "./components/ShutDown/ShutDown";
 import Background from "./components/tools/Background";
+import WalletManager from "./components/WalletManager";
 
 class Desktop extends Component {
   static contextType = SettingsContext;
@@ -40,6 +41,7 @@ class Desktop extends Component {
           <WindowManager />
           <TaskManager />
           <Settings />
+          <WalletManager />
           <ShutDown />
           {context.crt && <CRTOverlay />}
         </Theme>

@@ -71,3 +71,6 @@ export { default as skifree } from "./skifree-min.png";
 export { default as floppy32 } from "./floppy32-min.png";
 export { default as hdd32 } from "./hdd32-min.png";
 export { default as cd32 } from "./cd32-min.png";
+
+export { default as metamask16 } from "./metamask16.png";
+export { default as metamask16Gray } from "./metamask16-gray.png";
