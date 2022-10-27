@@ -1,9 +1,9 @@
-import React, { Component, createContext } from "react";
+import React, { Component, createContext, useEffect, useState } from "react";
 import nanoid from "nanoid";
 import * as icons from "../icons";
 import * as Applications from "../components/Applications";
-import startMenuData from "../data/start";
-import desktopData from "../data/desktop";
+import defaultStartMenuData from "../data/start";
+import defaultDesktopData from "../data/desktop";
 import { ProgramContext, ProgramState } from ".";
 
 const transformLinks = option => ({
@@ -164,12 +164,12 @@ interface ProgramProviderProps {
   children: React.ReactNode,
 }
 
-class ProgramProvider extends Component<ProgramProviderProps, ProgramState> {
-  static defaultProps = {
-    startMenuData,
-    desktopData
-  };
-  state = {
+const ProgramProvider = ({
+  startMenuData = defaultStartMenuData,
+  desktopData = defaultDesktopData,
+  ...props
+}: ProgramProviderProps) => {
+  const [state, setState] = useState<ProgramState>({
     activeId: null,
     programs: Object.keys(Applications).reduce(
       (acc, p) => ({
@@ -179,31 +179,31 @@ class ProgramProvider extends Component<ProgramProviderProps, ProgramState> {
       {}
     ),
     startMenu: initialize(
-      p => this.open(p),
+      p => open(p),
       addIdsToData(
         startMenu(
-          this.props.startMenuData,
+          startMenuData,
           [
-            { title: "Ctrl+Alt+Del", onClick: () => this.toggleTaskManager() },
+            { title: "Ctrl+Alt+Del", onClick: () => toggleTaskManager() },
             {
               title: "Control Panel",
-              onClick: () => this.toggleSettings(),
+              onClick: () => toggleSettings(),
               icon: icons.controlPanel16.src
             },
             {
               title: 'Wallet Manager',
-              onClick: () => this.toggleWalletManager(true),
+              onClick: () => toggleWalletManager(true),
               icon: icons.metamask16.src,
             },
           ],
-          () => this.toggleShutDownMenu()
+          () => toggleShutDownMenu()
         )
       )
     ),
-    desktop: buildDesktop(this.props.desktopData, () => this.open),
+    desktop: buildDesktop(desktopData, () => open),
     quickLaunch: [
       {
-        onClick: () => this.minimizeAll(),
+        onClick: () => minimizeAll(),
         icon: icons.activeDesktop16.src,
         title: "Display Desktop"
       }
@@ -215,32 +215,34 @@ class ProgramProvider extends Component<ProgramProviderProps, ProgramState> {
     shutDownMenu: false,
     taskManager: false,
     walletManager: false,
-  };
+  })
 
-  componentDidMount() {
+  useEffect(() => {
     const desktopSaved = JSON.parse(window.localStorage.getItem("desktop"));
     if (desktopSaved) {
-      this.setState(() => ({
-        desktop: buildDesktop(desktopSaved, () => this.open)
+      setState((currentState) => ({
+        ...currentState,
+        desktop: buildDesktop(desktopSaved, () => open)
       }));
     }
-  }
+  }, []);
 
-  toggleShutDownMenu = () =>
-    this.setState(state => ({ shutDownMenu: !state.shutDownMenu }));
-  toggleTaskManager = () =>
-    this.setState(state => ({ taskManager: !state.taskManager }));
-  toggleSettings = (val?: boolean) =>
-    this.setState(state => ({
+  const toggleShutDownMenu = () =>
+    setState(currentState => ({ ...currentState, shutDownMenu: !state.shutDownMenu }));
+  const toggleTaskManager = () =>
+    setState(currentState => ({ ...currentState, taskManager: !state.taskManager }));
+  const toggleSettings = (val?: boolean) =>
+    setState(currentState => ({ ...currentState,
       settingsDisplay: val || !state.settingsDisplay
     }));
-  toggleWalletManager = (val?: boolean) =>
-    this.setState(state => ({
+  const toggleWalletManager = (val?: boolean) =>
+    setState(currentState => ({
+      ...currentState,
       walletManager: val || !state.walletManager
     }));
 
 
-  shutDown = () => {
+  const shutDown = () => {
     const desktop = document.querySelector(".desktop");
     if (desktop) {
       desktop.innerHTML = "";
@@ -255,34 +257,35 @@ class ProgramProvider extends Component<ProgramProviderProps, ProgramState> {
     }
   };
 
-  isProgramActive = programId =>
-    this.state.activePrograms[programId];
+  const isProgramActive = programId =>
+    state.activePrograms[programId];
 
-  moveToTop = windowId => {
-    this.setState({
+  const moveToTop = windowId => {
+    setState(currentState => ({
+      ...currentState,
       activePrograms: {
-        ...this.state.activePrograms,
+        ...currentState.activePrograms,
         [windowId]: {
-          ...this.state.activePrograms[windowId],
+          ...currentState.activePrograms[windowId],
           minimized: false,
         },
       },
       activeId: windowId,
       zIndexes: [
-        ...this.state.zIndexes.filter(v => v !== windowId),
+        ...currentState.zIndexes.filter(v => v !== windowId),
         windowId,
       ],
-    });
+    }));
   };
 
-  open = (program, options: any = {}) => {
+  const open = (program, options: any = {}) => {
     // @todo use id instead to avoid weird open handling
     // @todo rename launch to handle multi-window programs
     if (!Applications[program.component]) {
       return;
     }
-    if (this.isProgramActive(program.id) && !program.multiInstance) {
-      this.moveToTop(program.id);
+    if (isProgramActive(program.id) && !program.multiInstance) {
+      moveToTop(program.id);
       return;
     }
     const newProgram = {
@@ -291,81 +294,86 @@ class ProgramProvider extends Component<ProgramProviderProps, ProgramState> {
       data: options.new ? {} : program.data,
       title: options.new ? program.component : program.title
     };
-    this.setState({
+    setState(currentState => ({
+      ...currentState,
       activePrograms: {
-        ...this.state.activePrograms,
+        ...currentState.activePrograms,
         [newProgram.id]: newProgram,
       },
-      openOrder: [...this.state.openOrder, newProgram.id],
-      zIndexes: [ ...this.state.zIndexes, newProgram.id],
+      openOrder: [...currentState.openOrder, newProgram.id],
+      zIndexes: [ ...currentState.zIndexes, newProgram.id],
       activeId: newProgram.id
-    });
+    }));
   };
 
-  close = (program, exit) => {
-    if (!this.isProgramActive(program.id)) {
+  const close = (program, shouldExit) => {
+    if (!isProgramActive(program.id)) {
       return;
     }
-    const taskBar = this.state.openOrder.filter(p => p !== program.id);
-    this.setState({
+    const taskBar = state.openOrder.filter(p => p !== program.id);
+    setState(currentState => ({
+      ...currentState,
       openOrder: taskBar,
-      zIndexes: this.state.zIndexes.filter(p => p !== program.id),
-    });
+      zIndexes: currentState.zIndexes.filter(p => p !== program.id),
+    }));
 
-    if (!program.background || exit) {
-      this.exit(program.id);
+    if (!program.background || shouldExit) {
+      exit(program.id);
     }
   };
 
-  exit = programId =>
-    this.setState({
-      activePrograms: Object.keys(this.state.activePrograms).reduce((acc, val) => {
+  const exit = programId =>
+    setState(currentState => ({
+      ...currentState,
+      activePrograms: Object.keys(state.activePrograms).reduce((acc, val) => {
         if (programId !== val) {
           return {
             ...acc,
-            [val]: this.state.activePrograms[val],
+            [val]: currentState.activePrograms[val],
           }
         }
         return acc;
       }, {}),
       activeId: null,
-    });
+    }));
 
-  minimize = programId => {
-    if (!this.state.activePrograms[programId]) {
+  const minimize = programId => {
+    if (!state.activePrograms[programId]) {
       return;
     } else {
-      this.setState({
+      setState(currentState => ({
+        ...currentState,
         activePrograms: {
-          ...this.state.activePrograms,
+          ...state.activePrograms,
           [programId]: {
-            ...this.state.activePrograms[programId],
+            ...state.activePrograms[programId],
             minimized: true,
           },
         },
         activeId: null
-      });
+      }));
     }
   };
-  minimizeAll = () =>
-    this.setState(state => ({
-      activePrograms: Object.keys(state.activePrograms).reduce((acc, val) => ({
-        ...state.activePrograms,
+  const minimizeAll = () =>
+    setState(currentState => ({
+      ...currentState,
+      activePrograms: Object.keys(currentState.activePrograms).reduce((acc, val) => ({
+        ...currentState.activePrograms,
         [val]: {
-          ...state.activePrograms[val],
+          ...currentState.activePrograms[val],
           minimized: true,
         }
       }), {}),
       activeId: null
     }));
 
-  save = (prog, data, title, location: 'desktop' | 'startMenu' = "desktop") => {
-    const mapFunc = mapActions(this.open, location === "desktop");
-    const existing = this.state[location].find(
+  const save = (prog, data, title, location: 'desktop' | 'startMenu' = "desktop") => {
+    const mapFunc = mapActions(open, location === "desktop");
+    const existing = state[location].find(
       p => p.title === title || p.id === prog.id
     );
     if (existing) {
-      return this.setState(
+      return setState(
         // @ts-ignore
         state => {
           const filtered = state[location].filter(
@@ -381,12 +389,12 @@ class ProgramProvider extends Component<ProgramProviderProps, ProgramState> {
               ...filtered,
               mapFunc({
                 ...updated,
-                onClick: () => this.open(updated)
+                onClick: () => open(updated)
               })
             ]
           };
         },
-        () => this.saveLocally(location)
+        // () => this.saveLocally(location)
       );
     } else {
       const newProg = {
@@ -400,48 +408,47 @@ class ProgramProvider extends Component<ProgramProviderProps, ProgramState> {
         id: nanoid(),
         readOnly: false
       };
-      return this.setState(
+      return setState(
         // @ts-ignore
-        state => ({
+        currentState => ({
+          ...currentState,
           [location]: [
-            ...state[location],
+            ...currentState[location],
             {
               ...mapFunc({
                 ...newProg,
-                onClick: () => this.open(newProg)
+                onClick: () => open(newProg)
               })
             }
           ]
         }),
-        () => this.saveLocally(location)
+        // () => saveLocally(location)
       );
     }
   };
 
-  saveLocally = loc =>
-    window.localStorage.setItem(loc, JSON.stringify(this.state[loc]));
+  const saveLocally = loc =>
+    window.localStorage.setItem(loc, JSON.stringify(state[loc]));
 
-  render() {
-    return (
-      <ProgramContext.Provider
-        value={{
-          ...this.state,
-          onOpen: this.open,
-          onClose: this.close,
-          moveToTop: this.moveToTop,
-          toggleTaskManager: this.toggleTaskManager,
-          toggleSettings: this.toggleSettings,
-          toggleShutDownMenu: this.toggleShutDownMenu,
-          toggleWalletManager: this.toggleWalletManager,
-          shutDown: this.shutDown,
-          onMinimize: this.minimize,
-          save: this.save
-        }}
-      >
-        {this.props.children}
-      </ProgramContext.Provider>
-    );
-  }
+  return (
+    <ProgramContext.Provider
+      value={{
+        ...state,
+        onOpen: open,
+        onClose: close,
+        moveToTop: moveToTop,
+        toggleTaskManager: toggleTaskManager,
+        toggleSettings: toggleSettings,
+        toggleShutDownMenu: toggleShutDownMenu,
+        toggleWalletManager: toggleWalletManager,
+        shutDown: shutDown,
+        onMinimize: minimize,
+        save: save
+      }}
+    >
+      {props.children}
+    </ProgramContext.Provider>
+  );
 }
 
 export default ProgramProvider;
