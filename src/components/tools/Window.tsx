@@ -35,7 +35,7 @@ const resizeStyles = pixels => {
 
 const randomizeLaunchSpot = max => Math.ceil(Math.random() * max);
 
-const launchPositions = (propX, propY, isMobile) => {
+const launchPositions = (propX?: number, propY?: number, isMobile?: boolean) => {
   const random = randomizeLaunchSpot(80);
   const x = propX || random;
   const y = propY || random;
@@ -50,15 +50,91 @@ const launchPositions = (propX, propY, isMobile) => {
       };
 };
 
-class Window extends React.PureComponent {
+interface WindowChildExternalProps {
+  title?: string;
+  icon?: string;
+  footer?: string;
+  multiInstance?: boolean;
+  className?: string;
+  isActive?: boolean;
+  menuOptions?: any;
+  hasMenu?: boolean;
+  explorerOptions?: any;
+  data?: any;
+  style?: any;
+  children: React.ReactNode;
+  isDragging?: boolean;
+  resizable?: boolean;
+  onOpen?: () => void;
+  onClose?: (props: any) => void;
+  onMinimize?: (id: string) => void;
+}
+
+interface WindowChildProps extends WindowChildExternalProps {
+  onRestore?: () => void;
+  onMaximize?: () => void;
+  changingState?: boolean;
+  maximizeOnOpen?: boolean;
+}
+
+interface WindowProps extends WindowChildExternalProps {
+  id: string;
+  initialHeight: number;
+  initialWidth: number;
+  maximizeOnOpen?: boolean;
+  isMobile?: boolean;
+  initialX?: number;
+  initialY?: number;
+  hideOnDrag?: boolean;
+  minimized?: boolean;
+  zIndex?: number;
+  Component: React.ComponentType<WindowChildProps>;
+  minWidth?: number;
+  minHeight?: number;
+  maxWidth?: number;
+  maxHeight?: number;
+  moveToTop?: (id: string) => void;
+}
+
+interface WindowState {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+  isDragging?: boolean;
+  isResizing?: boolean;
+  maximized: boolean;
+}
+
+interface SettingsContext {
+  isMobile: boolean;
+  scale: number;
+}
+
+class Window extends React.PureComponent<WindowProps, WindowState> {
   static contextType = SettingsContext;
-  state = {
+  declare context: SettingsContext;
+
+  static defaultProps = {
+    minWidth: 200,
+    minHeight: 200,
+    initialWidth: 250,
+    initialHeight: 250,
+    // maxHeight: 448,
+    // maxWidth: 635,
+    resizable: true,
+  
+    scale: 1,
+    title: "Needs default"
+  };
+
+  state: WindowState = {
     height: this.props.initialHeight,
     width: this.props.initialWidth,
     maximized:
       (this.context.isMobile && this.props.resizable) ||
       this.props.maximizeOnOpen,
-    ...launchPositions(this.props.inintalX, this.props.initialY)
+    ...launchPositions(this.props.initialX, this.props.initialY)
   };
 
   updateLocation = (a, b) => {
@@ -128,6 +204,7 @@ class Window extends React.PureComponent {
             zIndex: this.props.zIndex,
             visibility: this.props.minimized ? 'hidden' : undefined,
           }}
+          // @ts-ignore I can't figure out this error
           size={
             !this.state.maximized && {
               width: this.state.width,
@@ -180,18 +257,5 @@ class Window extends React.PureComponent {
     );
   }
 }
-
-Window.defaultProps = {
-  minWidth: 200,
-  minHeight: 200,
-  initialWidth: 250,
-  initialHeight: 250,
-  // maxHeight: 448,
-  // maxWidth: 635,
-  resizable: true,
-
-  scale: 1,
-  title: "Needs default"
-};
 
 export default Window;
