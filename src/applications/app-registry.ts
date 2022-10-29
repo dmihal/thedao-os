@@ -2,6 +2,7 @@ import { App } from "./App";
 import WelcomeApp from "./Welcome/WelcomeApp";
 import * as Applications from "../components/Applications";
 import { ComponentType } from "react";
+import AnalyticsApp from "./Analytics/AnalyticsApp";
 
 class AppRegistry {
   apps: App[] = [];
@@ -20,6 +21,7 @@ class AppRegistry {
 const registry = new AppRegistry();
 
 registry.register(new WelcomeApp());
+registry.register(new AnalyticsApp());
 
 class LegacyApp implements App {
   name: string;

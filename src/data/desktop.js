@@ -4,6 +4,18 @@ import readme from "./textFiles/readme";
 
 export default [
   {
+    title: "Welcome",
+    icon: icons.computer32.src,
+    component: "Welcome",
+    data: {},
+  },
+  {
+    title: "Analytics",
+    icon: icons.computer32.src,
+    component: "Analytics",
+    data: {},
+  },
+  {
     title: "My Computer",
     icon: icons.computer32.src,
     component: "ExplorerWindow",
