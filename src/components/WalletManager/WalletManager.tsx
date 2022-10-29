@@ -48,6 +48,7 @@ const WalletManager = ({ ...props }) => {
   }
 
   return (
+    // @ts-ignore TODO
     <Window
       {...props}
       initialX={200}
@@ -57,7 +58,6 @@ const WalletManager = ({ ...props }) => {
       Component={AbstractWindow}
       title="Wallet Manager"
       className="Settings"
-      onHelp={() => {}} // @todo
       onClose={() => program.toggleWalletManager()}
       menuOptions={buildMenu({
         ...props,
@@ -65,7 +65,7 @@ const WalletManager = ({ ...props }) => {
       })}
       resizable={false}
       onMinimize={null}
-      onMaximize={null}
+      // onMaximize={null}
       isActive
     >
       <DetailsSection>

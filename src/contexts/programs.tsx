@@ -1,10 +1,10 @@
 import React, { Component, createContext, useEffect, useState } from "react";
 import nanoid from "nanoid";
 import * as icons from "../icons";
-import * as Applications from "../components/Applications";
 import defaultStartMenuData from "../data/start";
 import defaultDesktopData from "../data/desktop";
 import { ProgramContext, ProgramState } from ".";
+import registry from "../applications/app-registry";
 
 const transformLinks = option => ({
   ...option,
@@ -124,7 +124,7 @@ const mapActions = (open, doubleClick?: boolean) => entry => {
   const { onClick, ...nestedData } = entry;
   const onClickAction = !entry.options
     ? (...params) => {
-        if (Applications[entry.component]) {
+        if (registry.get(entry.component)) {
           open(entry);
         }
         if (entry.onClick) {
@@ -171,10 +171,10 @@ const ProgramProvider = ({
 }: ProgramProviderProps) => {
   const [state, setState] = useState<ProgramState>({
     activeId: null,
-    programs: Object.keys(Applications).reduce(
-      (acc, p) => ({
+    programs: registry.apps.reduce(
+      (acc, app) => ({
         ...acc,
-        [p]: { ...Applications[p], programId: nanoid() }
+        [app.name]: { ...app.Component, programId: nanoid() }
       }),
       {}
     ),
@@ -281,7 +281,7 @@ const ProgramProvider = ({
   const open = (program, options: any = {}) => {
     // @todo use id instead to avoid weird open handling
     // @todo rename launch to handle multi-window programs
-    if (!Applications[program.component]) {
+    if (!registry.get(program.component)) {
       return;
     }
     if (isProgramActive(program.id) && !program.multiInstance) {

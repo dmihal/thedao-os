@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import * as Applications from "../Applications";
 import { ProgramContext } from "../../contexts";
+import registry from "../../applications/app-registry";
 
 class WindowManager extends Component {
   static contextType = ProgramContext;
@@ -12,9 +12,9 @@ class WindowManager extends Component {
           // .filter(prog => !prog.minimized)
           .map(progId => {
             const prog = this.context.activePrograms[progId]
-            const Application = Applications[prog.component];
+            const app = registry.get(prog.component);
             return (
-              <Application
+              <app.Component
                 {...prog}
                 save={this.context.save}
                 key={progId}
